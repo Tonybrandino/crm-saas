@@ -2725,24 +2725,33 @@ async function doLogin() {
   const pass  = document.getElementById('login-pass').value;
   const err   = document.getElementById('login-error');
 
-  if(!email||!pass){ showErr(err,'Preencha e-mail e senha.'); return; }
+  err.style.display = 'none';
+  err.textContent = '';
 
-  await initFirebaseRuntime();
-  if(crmRuntime.authMode === 'firebase' && window.crmFirebaseBridge?.isAuthEnabled()){
-    try{
-      const profile = await window.crmFirebaseBridge.signIn(email, pass);
-      if (!profile || profile.active === false){ showErr(err,'Usuário sem perfil ativo no tenant configurado.'); return; }
-      currentUser = normalizeUserData(profile);
-      crmRuntime.tenantId = currentUser.tenantId || CRM_LOCAL_TENANT_ID;
-      saveSession(currentUser);
-      await hydrateStateFromFirebase(currentUser);
-      enterApp();
-      return;
-    }catch(e){
-      showErr(err,'Não foi possível autenticar no Firebase. Verifique e-mail, senha e tenant.');
-      return;
-    }
+  if (!email || !pass) {
+    err.textContent = 'Preencha e-mail e senha.';
+    err.style.display = 'block';
+    return;
   }
+
+  try {
+    const user = await window.firebaseAuthBridge.login(email, pass);
+
+    currentUser = {
+      id: user.uid,
+      nome: user.email,
+      email: user.email,
+      role: 'admin',
+      active: true
+    };
+
+    enterApp();
+  } catch (e) {
+    console.error(e);
+    err.textContent = 'E-mail ou senha inválidos.';
+    err.style.display = 'block';
+  }
+}
 
   initUsers();
   const users = getUsers();
