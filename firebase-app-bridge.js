@@ -16,7 +16,8 @@ window.firebaseAuthBridge = {
   async login(email, password) {
     const cred = await signInWithEmailAndPassword(auth, email, password);
     return cred.user;
-  },
+  }
+};
 
   async register({ nome, email, password, role = "admin" }) {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
