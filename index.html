@@ -2736,18 +2736,26 @@ async function doLogin() {
 
   try {
     const user = await window.firebaseAuthBridge.login(email, pass);
+    const profile = await window.firebaseAuthBridge.getCurrentUserProfile(user.uid);
+
+    if (!profile || profile.active === false) {
+      err.textContent = 'Usuário sem acesso liberado.';
+      err.style.display = 'block';
+      return;
+    }
 
     currentUser = {
       id: user.uid,
-      nome: user.email,
+      nome: profile.nome || user.email,
       email: user.email,
-      role: 'admin',
-      active: true
+      role: profile.role || 'viewer',
+      active: profile.active !== false,
+      firebaseUid: user.uid
     };
 
     enterApp();
   } catch (e) {
-    console.error(e);
+    console.error('ERRO LOGIN:', e);
     err.textContent = 'E-mail ou senha inválidos.';
     err.style.display = 'block';
   }
@@ -2755,27 +2763,29 @@ async function doLogin() {
 
  
 async function doReset() {
-  const email   = document.getElementById('reset-email').value.trim().toLowerCase();
-  const p1      = document.getElementById('reset-pass1').value;
-  const p2      = document.getElementById('reset-pass2').value;
-  const errEl   = document.getElementById('reset-error');
-  const succEl  = document.getElementById('reset-success');
-  if(!email){ showErr(errEl,'Informe seu e-mail.'); return; }
+  const email = document.getElementById('reset-email').value.trim().toLowerCase();
+  const errEl = document.getElementById('reset-error');
+  const succEl = document.getElementById('reset-success');
 
-  await initFirebaseRuntime();
-  if(crmRuntime.authMode === 'firebase' && window.crmFirebaseBridge?.isAuthEnabled()){
-    try{
-      await window.crmFirebaseBridge.sendPasswordReset(email);
-      errEl.style.display  = 'none';
-      succEl.style.display = 'block';
-      succEl.textContent = 'E-mail de redefinição enviado com sucesso.';
-      openPassConfirmModal('Enviamos o link de redefinição de senha para o seu e-mail.');
-      return;
-    }catch(e){
-      showErr(errEl,'Não foi possível enviar o e-mail de redefinição.');
-      return;
-    }
+  errEl.style.display = 'none';
+  errEl.textContent = '';
+  succEl.style.display = 'none';
+  succEl.textContent = '';
+
+  if (!email) {
+    showErr(errEl, 'Informe seu e-mail.');
+    return;
   }
+
+  try {
+    await window.firebaseAuthBridge.resetPassword(email);
+    succEl.style.display = 'block';
+    succEl.textContent = 'E-mail de redefinição enviado com sucesso.';
+  } catch (e) {
+    console.error(e);
+    showErr(errEl, 'Não foi possível enviar o e-mail de redefinição.');
+  }
+}
 
   initUsers();
   const users = getUsers();
@@ -2875,29 +2885,25 @@ function setAdminSection(section='settings'){
 }
 
 async function doLogout() {
-  const prevUser = currentUser;
-  currentUser = null;
-  clearSession();
-  if(prevUser && window.crmFirebaseBridge?.isAuthEnabled()){
-    try{ await window.crmFirebaseBridge.signOut(); }catch(e){}
+  try {
+    await window.firebaseAuthBridge.logout();
+  } catch (e) {
+    console.error(e);
   }
-  closeLeadPopup();
-  closeTodayTasks();
-  closeDelModal();
-  closeDelUserModal();
-  closePassConfirmModal();
-  closeChangePassModal();
-  closeDuplicateModal();
-  document.getElementById('notif-panel')?.classList.remove('open');
+
+  currentUser = null;
+
   document.getElementById('screen-app').classList.remove('active');
   document.getElementById('screen-admin').classList.remove('active');
   document.getElementById('screen-login').classList.add('active');
-  showView('login');
-  document.getElementById('login-email').value='';
-  document.getElementById('login-pass').value='';
-  closeUserMenu();
-}
 
+  showView('login');
+
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-pass').value = '';
+
+  closeUserMenu?.();
+}
 function showErr(el, msg) { el.textContent=msg; el.style.display='block'; }
 
 // header user display
