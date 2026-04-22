@@ -1,3 +1,19 @@
+<div id="login-box" style="max-width:400px;margin:50px auto;text-align:center;">
+  <h2>Login</h2>
+
+  <input id="email" placeholder="E-mail" style="width:100%;margin:5px;padding:10px;">
+  <input id="password" type="password" placeholder="Senha" style="width:100%;margin:5px;padding:10px;">
+
+  <button onclick="login()" style="width:100%;padding:10px;">Entrar</button>
+
+  <hr>
+
+  <h3>Criar conta</h3>
+  <input id="nome" placeholder="Nome" style="width:100%;margin:5px;padding:10px;">
+  <button onclick="register()" style="width:100%;padding:10px;">Cadastrar</button>
+
+  <p id="msg"></p>
+</div>
 <script type="module" src="firebase-config.js"></script>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -6369,6 +6385,41 @@ function refreshAllWaBtns() {
 </script>
    <script type="module" src="firebase-config.js"></script>
 <script type="module" src="firebase-app-bridge.js"></script>
+<script type="module">
+import "./firebase-config.js";
+import "./firebase-app-bridge.js";
+
+window.login = async function () {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  try {
+    await window.firebaseAuthBridge.login(email, password);
+    document.getElementById("msg").innerText = "Login feito!";
+  } catch (e) {
+    console.error(e);
+    document.getElementById("msg").innerText = "Erro no login";
+  }
+};
+
+window.register = async function () {
+  const nome = document.getElementById("nome").value;
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  try {
+    await window.firebaseAuthBridge.register({
+      nome,
+      email,
+      password
+    });
+    document.getElementById("msg").innerText = "Conta criada!";
+  } catch (e) {
+    console.error(e);
+    document.getElementById("msg").innerText = "Erro ao cadastrar";
+  }
+};
+</script>
 </body>
 </html>
 
