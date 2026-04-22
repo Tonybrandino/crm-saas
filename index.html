@@ -14,7 +14,36 @@
 
   <p id="msg"></p>
 </div>
-<script type="module" src="firebase-config.js"></script>
+<script type="module" src="firebase-config.js">
+
+  // 👇 COLE AQUI
+  window.addEventListener('DOMContentLoaded', () => {
+    if (!window.firebaseAuthBridge) return;
+
+    window.firebaseAuthBridge.onAuthChanged(async (user) => {
+      if (!user) return;
+
+      try {
+        const profile = await window.firebaseAuthBridge.getCurrentUserProfile(user.uid);
+        if (!profile || profile.active === false) return;
+
+        currentUser = {
+          id: user.uid,
+          nome: profile.nome || user.email,
+          email: user.email,
+          role: profile.role || 'viewer',
+          active: profile.active !== false,
+          firebaseUid: user.uid
+        };
+
+        enterApp();
+      } catch (e) {
+        console.error(e);
+      }
+    });
+  });
+</script>
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
