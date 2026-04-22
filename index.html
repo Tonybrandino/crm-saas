@@ -2753,22 +2753,7 @@ async function doLogin() {
   }
 }
 
-  initUsers();
-  const users = getUsers();
-  const user  = users.find(u => u.email.toLowerCase()===email && u.active);
-  if (!user){ showErr(err,'E-mail não encontrado.'); return; }
-  if (user.pass !== btoa(pass)){ showErr(err,'Senha incorreta.'); return; }
-
-  currentUser = user;
-  saveSession(user);
-
-  if(user.mustChange) {
-    showView('change-pass');
-    return;
-  }
-  enterApp();
-}
-
+ 
 async function doReset() {
   const email   = document.getElementById('reset-email').value.trim().toLowerCase();
   const p1      = document.getElementById('reset-pass1').value;
