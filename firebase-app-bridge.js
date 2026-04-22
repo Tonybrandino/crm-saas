@@ -50,28 +50,3 @@ window.firebaseAuthBridge = {
     return onAuthStateChanged(auth, callback);
   }
 };
-window.addEventListener('DOMContentLoaded', () => {
-  if (!window.firebaseAuthBridge) return;
-
-  window.firebaseAuthBridge.onAuthChanged(async (user) => {
-    if (!user) return;
-
-    try {
-      const profile = await window.firebaseAuthBridge.getCurrentUserProfile(user.uid);
-      if (!profile || profile.active === false) return;
-
-      currentUser = {
-        id: user.uid,
-        nome: profile.nome || user.email,
-        email: user.email,
-        role: profile.role || 'viewer',
-        active: profile.active !== false,
-        firebaseUid: user.uid
-      };
-
-      enterApp();
-    } catch (e) {
-      console.error(e);
-    }
-  });
-});
