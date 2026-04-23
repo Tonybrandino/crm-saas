@@ -2659,26 +2659,51 @@ async function doLogin() {
   const pass  = document.getElementById('login-pass').value;
   const err   = document.getElementById('login-error');
 
-  if(!email||!pass){ showErr(err,'Preencha e-mail e senha.'); return; }
+  err.style.display = 'none';
+  err.textContent = '';
+
+  if (!email || !pass) {
+    showErr(err, 'Preencha e-mail e senha.');
+    return;
+  }
 
   await initFirebaseRuntime();
-  if(window.firebaseAuthBridge?.isAuthEnabled()){
-    try{
-      const profile = await window.firebaseAuthBridge.login(email, pass);
-      if (!profile || profile.active === false){ showErr(err,'Usuário sem perfil ativo no tenant configurado.'); return; }
-      currentUser = normalizeUserData(profile);
-      crmRuntime.tenantId = currentUser.tenantId || CRM_LOCAL_TENANT_ID;
+
+  if (window.firebaseAuthBridge?.isAuthEnabled()) {
+    try {
+      const user = await window.firebaseAuthBridge.login(email, pass);
+      const profile = await window.firebaseAuthBridge.getCurrentUserProfile(user.uid);
+
+      if (!profile || profile.active === false) {
+        showErr(err, 'Usuário sem perfil ativo no Firestore.');
+        return;
+      }
+
+      currentUser = {
+        id: user.uid,
+        uid: user.uid,
+        email: user.email,
+        nome: profile.nome || user.email,
+        role: profile.role || 'admin',
+        active: profile.active !== false,
+        tenantId: profile.tenantId || null
+      };
+
+      crmRuntime.tenantId = currentUser.tenantId || null;
+
       saveSession(currentUser);
       await hydrateStateFromFirebase(currentUser);
       await syncUsersFromFirebase();
       enterApp();
       return;
-    }catch(e){
-      showErr(err,'Não foi possível autenticar no Firebase. Verifique e-mail, senha e tenant.');
+    } catch (e) {
+      console.error('ERRO LOGIN:', e);
+      showErr(err, 'Não foi possível autenticar no Firebase.');
       return;
     }
   }
-  showErr(err,'Firebase Auth não está ativo. Preencha o firebase-config.js com as chaves reais do projeto.');
+
+  showErr(err, 'Firebase Auth não está ativo.');
 }
 
 async function doReset() {
