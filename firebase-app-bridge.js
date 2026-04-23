@@ -60,4 +60,3 @@ window.firebaseAuthBridge = {
     return onAuthStateChanged(auth, callback);
   }
 };
-})();
