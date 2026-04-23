@@ -2674,22 +2674,23 @@ async function doLogin() {
 
   let user;
 
+  // 🔥 LOGIN ISOLADO
   try {
-    // 👉 AQUI É A CHAVE
     user = await window.firebaseAuthBridge.login(email, pass);
-    console.log('LOGIN OK:', user);
+    console.log("LOGIN OK:", user);
   } catch (e) {
-    console.error('ERRO LOGIN:', e);
+    console.error("ERRO AUTH:", e);
     showErr(err, 'E-mail ou senha inválidos.');
     return;
   }
 
+  // 🔥 VALIDAÇÃO
   if (!user || user.active === false) {
     showErr(err, 'Usuário sem perfil ativo.');
     return;
   }
 
-  // 👉 user já vem com perfil junto
+  // 🔥 SET USER
   currentUser = {
     id: user.uid,
     uid: user.uid,
@@ -2703,20 +2704,30 @@ async function doLogin() {
   window.crmRuntime = window.crmRuntime || {};
   window.crmRuntime.tenantId = currentUser.tenantId;
 
+  // 🔥 ENTRA NO APP PRIMEIRO
   try {
     saveSession(currentUser);
     enterApp();
-
-    // roda em background (não trava login)
-    setTimeout(async () => {
-      try { await hydrateStateFromFirebase(currentUser); } catch(e){}
-      try { await syncUsersFromFirebase(); } catch(e){}
-    }, 0);
-
   } catch (e) {
-    console.error('ERRO POS LOGIN:', e);
-    showErr(err, 'Erro ao abrir o sistema.');
+    console.error("ERRO ENTER APP:", e);
+    showErr(err, 'Erro ao abrir sistema.');
+    return;
   }
+
+  // 🔥 BACKGROUND (NÃO BLOQUEIA LOGIN)
+  setTimeout(async () => {
+    try {
+      await hydrateStateFromFirebase(currentUser);
+    } catch (e) {
+      console.warn("hydrate falhou:", e);
+    }
+
+    try {
+      await syncUsersFromFirebase();
+    } catch (e) {
+      console.warn("sync falhou:", e);
+    }
+  }, 0);
 }
 
 async function doReset() {
