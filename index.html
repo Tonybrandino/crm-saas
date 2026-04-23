@@ -2667,6 +2667,9 @@ async function doLogin() {
     return;
   }
 
+  // 🔥 ESSA LINHA FALTAVA
+  await initFirebaseRuntime();
+
   if (!window.firebaseAuthBridge?.isAuthEnabled()) {
     showErr(err, 'Firebase Auth não está ativo.');
     return;
@@ -2674,7 +2677,6 @@ async function doLogin() {
 
   let user;
 
-  // 🔥 LOGIN ISOLADO
   try {
     user = await window.firebaseAuthBridge.login(email, pass);
     console.log("LOGIN OK:", user);
@@ -2684,13 +2686,11 @@ async function doLogin() {
     return;
   }
 
-  // 🔥 VALIDAÇÃO
   if (!user || user.active === false) {
     showErr(err, 'Usuário sem perfil ativo.');
     return;
   }
 
-  // 🔥 SET USER
   currentUser = {
     id: user.uid,
     uid: user.uid,
@@ -2704,7 +2704,6 @@ async function doLogin() {
   window.crmRuntime = window.crmRuntime || {};
   window.crmRuntime.tenantId = currentUser.tenantId;
 
-  // 🔥 ENTRA NO APP PRIMEIRO
   try {
     saveSession(currentUser);
     enterApp();
@@ -2714,19 +2713,9 @@ async function doLogin() {
     return;
   }
 
-  // 🔥 BACKGROUND (NÃO BLOQUEIA LOGIN)
   setTimeout(async () => {
-    try {
-      await hydrateStateFromFirebase(currentUser);
-    } catch (e) {
-      console.warn("hydrate falhou:", e);
-    }
-
-    try {
-      await syncUsersFromFirebase();
-    } catch (e) {
-      console.warn("sync falhou:", e);
-    }
+    try { await hydrateStateFromFirebase(currentUser); } catch(e){}
+    try { await syncUsersFromFirebase(); } catch(e){}
   }, 0);
 }
 
