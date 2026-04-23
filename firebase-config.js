@@ -1,44 +1,14 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-  getAuth,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  sendPasswordResetEmail,
-  signOut,
-  updatePassword
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {
-  getFirestore,
-  doc,
-  setDoc,
-  getDoc,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyAoew773eW5XCmbYDXoSDuPk390Igew-gw",
+window.CRM_FIREBASE_CONFIG = {
+  apiKey: "SUA_API_KEY_REAL",
   authDomain: "crm-saas-1d922.firebaseapp.com",
   projectId: "crm-saas-1d922",
-  storageBucket: "crm-saas-1d922.firebasestorage.app",
-  messagingSenderId: "321293146304",
-  appId: "1:321293146304:web:dcd3041d589829f941f525"
-};
+  storageBucket: "crm-saas-1d922.appspot.com",
+  messagingSenderId: "SEU_ID_REAL",
+  appId: "SEU_APP_ID_REAL",
 
-const app = initializeApp(firebaseConfig);
+  // 🔥 ESSENCIAL
+  enableFirebaseAuth: true,
+  enableFirestoreSync: true,
 
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-
-export {
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  sendPasswordResetEmail,
-  signOut,
-  updatePassword,
-  doc,
-  setDoc,
-  getDoc,
-  serverTimestamp
+  userCollection: "users"
 };
