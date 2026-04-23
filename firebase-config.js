@@ -6,7 +6,6 @@ window.CRM_FIREBASE_CONFIG = {
   messagingSenderId: "321293146304",
   appId: "1:321293146304:web:dcd3041d589829f941f525",
 
-  defaultTenantId: null,
   enableFirebaseAuth: true,
   enableFirestoreSync: true,
   userCollection: "users",
