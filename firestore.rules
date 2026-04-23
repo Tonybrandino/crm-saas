@@ -1,0 +1,94 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function membershipDoc(tenantId) {
+      return /databases/$(database)/documents/tenants/$(tenantId)/users/$(request.auth.uid);
+    }
+
+    function membership(tenantId) {
+      return get(membershipDoc(tenantId));
+    }
+
+    function isTenantMember(tenantId) {
+      return isSignedIn() && exists(membershipDoc(tenantId));
+    }
+
+    function role(tenantId) {
+      return isTenantMember(tenantId) ? membership(tenantId).data.role : null;
+    }
+
+    function canReadTenant(tenantId) {
+      return isTenantMember(tenantId);
+    }
+
+    function canWriteTenant(tenantId) {
+      return isTenantMember(tenantId) && role(tenantId) in ['admin', 'gerente', 'comercial'];
+    }
+
+    function canAdminTenant(tenantId) {
+      return isTenantMember(tenantId) && role(tenantId) == 'admin';
+    }
+
+    match /tenants/{tenantId} {
+      allow read: if canReadTenant(tenantId);
+      allow write: if canAdminTenant(tenantId);
+
+      match /users/{userId} {
+        allow read: if canReadTenant(tenantId);
+        allow create, update: if canAdminTenant(tenantId);
+        allow delete: if canAdminTenant(tenantId) && userId != request.auth.uid;
+      }
+
+      match /leads/{leadId} {
+        allow read: if canReadTenant(tenantId);
+        allow create, update, delete: if canWriteTenant(tenantId);
+      }
+
+      match /tasks/{taskId} {
+        allow read: if canReadTenant(tenantId);
+        allow create, update, delete: if canWriteTenant(tenantId);
+      }
+
+      match /interactions/{interactionId} {
+        allow read: if canReadTenant(tenantId);
+        allow create, update, delete: if canWriteTenant(tenantId);
+      }
+
+      match /comments/{commentId} {
+        allow read: if canReadTenant(tenantId);
+        allow create, update, delete: if canWriteTenant(tenantId);
+      }
+
+      match /tags/{tagId} {
+        allow read: if canReadTenant(tenantId);
+        allow create, update, delete: if canWriteTenant(tenantId);
+      }
+
+      match /customFields/{fieldId} {
+        allow read: if canReadTenant(tenantId);
+        allow create, update, delete: if canAdminTenant(tenantId);
+      }
+
+      match /automationRules/{ruleId} {
+        allow read: if canReadTenant(tenantId);
+        allow create, update, delete: if canAdminTenant(tenantId);
+      }
+
+      match /auditLogs/{logId} {
+        allow read: if canAdminTenant(tenantId);
+        allow create: if canWriteTenant(tenantId);
+        allow update, delete: if false;
+      }
+
+      match /app/{docId} {
+        allow read: if canReadTenant(tenantId);
+        allow create, update: if canAdminTenant(tenantId);
+        allow delete: if false;
+      }
+    }
+  }
+}
