@@ -2677,46 +2677,65 @@ async function doLogin() {
   }
 
   let user;
-
   try {
     user = await window.firebaseAuthBridge.login(email, pass);
     console.log("LOGIN OK:", user);
   } catch (e) {
     console.error("ERRO AUTH:", e);
-    showErr(err, 'E-mail ou senha inválidos.');
+    showErr(err, `Erro no login: ${e?.code || e?.message || 'desconhecido'}`);
     return;
   }
 
-  if (!user || user.active === false) {
-    showErr(err, 'Usuário sem perfil ativo.');
+  if (!user) {
+    showErr(err, 'Login retornou vazio.');
     return;
   }
 
   currentUser = {
-    id: user.uid,
-    uid: user.uid,
-    email: user.email,
-    nome: user.nome || user.email,
+    id: user.uid || user.id,
+    uid: user.uid || user.id,
+    email: user.email || email,
+    nome: user.nome || user.name || user.displayName || user.email || email,
     role: user.role || 'admin',
     active: user.active !== false,
     tenantId: user.tenantId || null
   };
 
+  console.log("CURRENT USER:", currentUser);
+
   window.crmRuntime = window.crmRuntime || {};
-  window.crmRuntime.tenantId = currentUser.tenantId;
+  window.crmRuntime.tenantId = currentUser.tenantId || null;
 
   try {
+    console.log("ANTES saveSession");
     saveSession(currentUser);
+    console.log("DEPOIS saveSession");
+
+    console.log("ANTES enterApp");
     enterApp();
+    console.log("DEPOIS enterApp");
   } catch (e) {
-    console.error("ERRO ENTER APP:", e);
-    showErr(err, 'Erro ao abrir sistema.');
+    console.error("ERRO POS-LOGIN:", e);
+    showErr(err, `Erro ao abrir sistema: ${e?.message || e}`);
     return;
   }
 
   setTimeout(async () => {
-    try { await hydrateStateFromFirebase(currentUser); } catch(e){}
-    try { await syncUsersFromFirebase(); } catch(e){}
+    try {
+      console.log("ANTES hydrateStateFromFirebase");
+      await hydrateStateFromFirebase(currentUser);
+      console.log("DEPOIS hydrateStateFromFirebase");
+    } catch (e) {
+      console.warn("hydrate falhou:", e);
+    }
+
+    try {
+      console.log("ANTES syncUsersFromFirebase");
+      await syncUsersFromFirebase();
+      console.log("DEPOIS syncUsersFromFirebase");
+    } catch (e) {
+      console.warn("sync falhou:", e);
+    }
   }, 0);
 }
 
