@@ -1,49 +1,3 @@
-<div id="login-box" style="max-width:400px;margin:50px auto;text-align:center;">
-  <h2>Login</h2>
-
-  <input id="email" placeholder="E-mail" style="width:100%;margin:5px;padding:10px;">
-  <input id="password" type="password" placeholder="Senha" style="width:100%;margin:5px;padding:10px;">
-
-  <button onclick="login()" style="width:100%;padding:10px;">Entrar</button>
-
-  <hr>
-
-  <h3>Criar conta</h3>
-  <input id="nome" placeholder="Nome" style="width:100%;margin:5px;padding:10px;">
-  <button onclick="register()" style="width:100%;padding:10px;">Cadastrar</button>
-
-  <p id="msg"></p>
-</div>
-<script type="module" src="firebase-config.js">
-
-  // 👇 COLE AQUI
-  window.addEventListener('DOMContentLoaded', () => {
-    if (!window.firebaseAuthBridge) return;
-
-    window.firebaseAuthBridge.onAuthChanged(async (user) => {
-      if (!user) return;
-
-      try {
-        const profile = await window.firebaseAuthBridge.getCurrentUserProfile(user.uid);
-        if (!profile || profile.active === false) return;
-
-        currentUser = {
-          id: user.uid,
-          nome: profile.nome || user.email,
-          email: user.email,
-          role: profile.role || 'viewer',
-          active: profile.active !== false,
-          firebaseUid: user.uid
-        };
-
-        enterApp();
-      } catch (e) {
-        console.error(e);
-      }
-    });
-  });
-</script>
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -55,12 +9,8 @@
 <meta name="theme-color" content="#ffffff">
 <title>CRM Pro</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<script src="./firebase-config.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="./firebase-app-bridge.js"></script>
+<script type="module" src="./firebase-config.js"></script>
+<script type="module" src="./firebase-app-bridge.js"></script>
 <style>
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    DESIGN TOKENS
@@ -1615,34 +1565,39 @@ header{
     <div class="login-sub">Sistema de Gestão de Clientes</div>
 
     <!-- LOGIN FORM -->
-    <div id="view-login">
-      <div class="login-title">Welcome back</div>
-      <div class="login-copy">Please enter your details to access your account.</div>
-      <div class="alert-box alert-error" id="login-error"></div>
-      <div class="lf">
-        <label>E-mail</label>
-        <input type="email" id="login-email" placeholder="name@company.com" onkeydown="if(event.key==='Enter')doLogin()">
-      </div>
-      <div class="lf">
-        <div class="lf-head">
-          <label>Senha</label>
-          <button class="btn-link" onclick="showView('reset')">Forgot Password?</button>
-        </div>
-        <input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
-      </div>
-      <button class="btn-primary" onclick="doLogin()">Sign In</button>
-      <div class="login-divider">OR</div>
-      <button class="btn-google" type="button">
-        <span style="font-size:18px">🌐</span>
-        <span>Sign in with Google</span>
-      </button>
-      <div class="login-links">
-        <button type="button">Privacy</button>
-        <button type="button">Terms</button>
-        <button type="button">Help</button>
-      </div>
-    </div>
+   <div id="view-login">
+  <div class="login-title">Welcome back</div>
+  <div class="login-copy">Please enter your details to access your account.</div>
+  <div class="alert-box alert-error" id="login-error"></div>
 
+  <div class="lf">
+    <label>E-mail</label>
+    <input type="email" id="login-email" placeholder="name@company.com" onkeydown="if(event.key==='Enter')doLogin()">
+  </div>
+
+  <div class="lf">
+    <div class="lf-head">
+      <label>Senha</label>
+      <button class="btn-link" type="button" onclick="showView('reset')">Forgot Password?</button>
+    </div>
+    <input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+  </div>
+
+  <button class="btn-primary" type="button" onclick="doLogin()">Sign In</button>
+
+  <div class="login-divider">OR</div>
+
+  <button class="btn-google" type="button">
+    <span style="font-size:18px">🌐</span>
+    <span>Sign in with Google</span>
+  </button>
+
+  <div class="login-links">
+    <button type="button">Privacy</button>
+    <button type="button">Terms</button>
+    <button type="button">Help</button>
+  </div>
+</div>
     <!-- RESET PASSWORD FORM -->
     <div id="view-reset" style="display:none">
       <button class="reset-back" onclick="showView('login')">← Voltar ao login</button>
