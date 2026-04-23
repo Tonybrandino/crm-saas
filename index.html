@@ -2757,7 +2757,8 @@ async function doReset() {
   succEl.textContent = '';
 
   if (!email) {
-    showErr(errEl, 'Informe seu e-mail.');
+    errEl.textContent = 'Informe seu e-mail.';
+    errEl.style.display = 'block';
     return;
   }
 
@@ -2767,26 +2768,10 @@ async function doReset() {
     succEl.textContent = 'E-mail de redefinição enviado com sucesso.';
   } catch (e) {
     console.error(e);
-    showErr(errEl, 'Não foi possível enviar o e-mail de redefinição.');
+    errEl.textContent = 'Não foi possível enviar o e-mail de redefinição.';
+    errEl.style.display = 'block';
   }
 }
-
-  initUsers();
-  const users = getUsers();
-  const idx   = users.findIndex(u => u.email.toLowerCase()===email && u.active);
-  if(idx<0){ showErr(errEl,'E-mail não encontrado.'); return; }
-  if(!isPasswordValid(p1,p2,errEl)) return;
-  users[idx].pass       = btoa(p1);
-  users[idx].mustChange = false;
-  saveUsers(users);
-  logAudit('redefinição de senha', 'user', users[idx].id, users[idx].nome, 'Senha redefinida via fluxo de recuperação');
-
-  errEl.style.display  = 'none';
-  succEl.style.display = 'block';
-  succEl.textContent = 'Senha redefinida com sucesso.';
-  openPassConfirmModal('Sua nova senha foi cadastrada com sucesso. Faça login para continuar.');
-}
-
 async function doChangePass() {
   const p1  = document.getElementById('new-pass1').value;
   const p2  = document.getElementById('new-pass2').value;
