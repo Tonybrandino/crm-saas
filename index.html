@@ -2655,6 +2655,8 @@ function showView(v) {
 }
 
 async function doLogin() {
+  console.log("DOLOGIN NOVA ATIVA");
+
   const email = document.getElementById('login-email').value.trim().toLowerCase();
   const pass  = document.getElementById('login-pass').value;
   const err   = document.getElementById('login-error');
@@ -2667,7 +2669,6 @@ async function doLogin() {
     return;
   }
 
-  // 🔥 ESSA LINHA FALTAVA
   await initFirebaseRuntime();
 
   if (!window.firebaseAuthBridge?.isAuthEnabled()) {
