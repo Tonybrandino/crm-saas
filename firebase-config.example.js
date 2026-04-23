@@ -1,0 +1,17 @@
+window.CRM_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAoew773eW5XCmbYDXoSDuPk390Igew-gw",
+  authDomain: "crm-saas-1d922.firebaseapp.com",
+  projectId: "crm-saas-1d922",
+  storageBucket: "crm-saas-1d922.firebasestorage.app",
+  messagingSenderId: "321293146304",
+  appId: "1:321293146304:web:dcd3041d589829f941f525",
+
+  defaultTenantId: null, // ⚠️ IMPORTANTE: você NÃO usa multi-tenant
+  enableFirebaseAuth: true,
+  enableFirestoreSync: true,
+
+  userCollection: "users", // ✔️ bate com seu Firestore
+  stateDocPath: "app/bootstrap",
+  lookupUserByEmail: true,
+  defaultRole: "admin"
+};
