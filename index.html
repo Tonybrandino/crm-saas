@@ -2655,16 +2655,9 @@ function showView(v) {
 }
 
 async function doLogin() {
-  console.log('[LOGIN] doLogin iniciou');
-
-  const email = document.getElementById('login-email')?.value?.trim().toLowerCase();
-  const pass  = document.getElementById('login-pass')?.value || '';
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('login-pass').value;
   const err   = document.getElementById('login-error');
-
-  if (!err) {
-    console.error('[LOGIN] Elemento #login-error não encontrado');
-    return;
-  }
 
   err.style.display = 'none';
   err.textContent = '';
@@ -2674,84 +2667,63 @@ async function doLogin() {
     return;
   }
 
-  try {
-    await initFirebaseRuntime();
-    console.log('[LOGIN] Firebase runtime iniciado');
-  } catch (e) {
-    console.error('[LOGIN] Falha ao iniciar Firebase:', e);
-    showErr(err, 'Falha ao iniciar o Firebase.');
-    return;
-  }
+  await initFirebaseRuntime();
 
-  if (!window.firebaseAuthBridge?.isAuthEnabled?.()) {
-    console.error('[LOGIN] Firebase Auth Bridge indisponível ou Auth desativado');
+  if (!window.firebaseAuthBridge?.isAuthEnabled()) {
     showErr(err, 'Firebase Auth não está ativo.');
     return;
   }
 
-  let user;
+  let authUser;
+  let profile;
+
   try {
-    user = await window.firebaseAuthBridge.login(email, pass);
-    console.log('[LOGIN] Auth OK:', user);
+    authUser = await window.firebaseAuthBridge.loginRaw(email, pass);
   } catch (e) {
-    console.error('[LOGIN] ERRO AUTH:', e);
+    console.error('ERRO AUTH:', e);
     showErr(err, 'E-mail ou senha inválidos.');
     return;
   }
 
-  if (!user?.uid) {
-    console.error('[LOGIN] Usuário retornado sem uid:', user);
-    showErr(err, 'Login inválido: usuário sem uid.');
-    return;
-  }
-
-  let profile;
   try {
-    profile = await window.firebaseAuthBridge.getCurrentUserProfile(user.uid);
-    console.log('[LOGIN] PROFILE OK:', profile);
+    profile = await window.firebaseAuthBridge.getCurrentUserProfile(authUser.uid);
   } catch (e) {
-    console.error('[LOGIN] ERRO PROFILE:', e);
+    console.error('ERRO PROFILE:', e);
     showErr(err, 'Não foi possível ler o perfil no Firestore.');
     return;
   }
 
-  if (!profile) {
-    console.error('[LOGIN] Perfil não encontrado no Firestore para uid:', user.uid);
-    showErr(err, 'Usuário sem perfil no Firestore.');
-    return;
-  }
-
-  if (profile.active === false) {
-    console.error('[LOGIN] Perfil inativo:', profile);
+  if (!profile || profile.active === false) {
     showErr(err, 'Usuário sem perfil ativo no Firestore.');
     return;
   }
 
   currentUser = {
-    id: user.uid,
-    uid: user.uid,
-    email: user.email || email,
-    nome: profile.nome || user.email || email,
+    id: authUser.uid,
+    uid: authUser.uid,
+    email: authUser.email,
+    nome: profile.nome || authUser.email,
     role: profile.role || 'admin',
     active: profile.active !== false,
-    tenantId: profile.tenantId || null
+    tenantId: profile.tenantId || null,
+    mustChange: !!profile.mustChange
   };
 
-  console.log('[LOGIN] currentUser montado:', currentUser);
+  crmRuntime = window.crmRuntime || {};
+  crmRuntime.tenantId = currentUser.tenantId || null;
 
   try {
-    window.crmRuntime = window.crmRuntime || {};
-    window.crmRuntime.tenantId = currentUser.tenantId || null;
-
     saveSession(currentUser);
-    console.log('[LOGIN] Sessão salva');
-
     enterApp();
-    console.log('[LOGIN] enterApp executado');
+
+    Promise.resolve().then(async () => {
+      try { await hydrateStateFromFirebase(currentUser); } catch (e) { console.warn('hydrate falhou', e); }
+      try { await syncUsersFromFirebase(); } catch (e) { console.warn('sync users falhou', e); }
+    });
 
     return;
   } catch (e) {
-    console.error('[LOGIN] ERRO POS-LOGIN:', e);
+    console.error('ERRO POS-LOGIN:', e);
     showErr(err, 'Login feito, mas algo falhou ao abrir o CRM.');
     return;
   }
