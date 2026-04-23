@@ -2670,7 +2670,6 @@ async function doLogin() {
   await initFirebaseRuntime();
 
   if (!window.firebaseAuthBridge?.isAuthEnabled()) {
-    alert('PASSO 0: Firebase Auth não está ativo');
     showErr(err, 'Firebase Auth não está ativo.');
     return;
   }
@@ -2680,9 +2679,7 @@ async function doLogin() {
 
   try {
     user = await window.firebaseAuthBridge.login(email, pass);
-    alert('PASSO 1: login Firebase OK');
   } catch (e) {
-    alert('PASSO 1 ERRO: login Firebase falhou');
     console.error('ERRO AUTH:', e);
     showErr(err, 'E-mail ou senha inválidos.');
     return;
@@ -2690,16 +2687,13 @@ async function doLogin() {
 
   try {
     profile = await window.firebaseAuthBridge.getCurrentUserProfile(user.uid);
-    alert('PASSO 2: perfil Firestore carregado');
   } catch (e) {
-    alert('PASSO 2 ERRO: não leu perfil Firestore');
     console.error('ERRO PROFILE:', e);
     showErr(err, 'Não foi possível ler o perfil no Firestore.');
     return;
   }
 
   if (!profile || profile.active === false) {
-    alert('PASSO 3 ERRO: perfil ausente ou inativo');
     showErr(err, 'Usuário sem perfil ativo no Firestore.');
     return;
   }
@@ -2718,13 +2712,17 @@ async function doLogin() {
 
   try {
     saveSession(currentUser);
-    alert('PASSO 4: antes do enterApp');
+
+    // deixa assim por enquanto, sem sync extra
+    // await hydrateStateFromFirebase(currentUser);
+    // await syncUsersFromFirebase();
+
     enterApp();
-    alert('PASSO 5: enterApp executado');
+    return;
   } catch (e) {
-    alert('PASSO 4/5 ERRO: falha ao abrir CRM');
     console.error('ERRO POS-LOGIN:', e);
     showErr(err, 'Login feito, mas algo falhou ao abrir o CRM.');
+    return;
   }
 }
 
